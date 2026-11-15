@@ -1,6 +1,7 @@
 # Credit Card Fraud Detection Using Python and Machine Learning
 
 ## Project details
+
 ### Definition:
 Credit Card Fraud Detection is a machine learning project that identifies fraudulent credit card transactions by analyzing transaction details and historical patterns. The system is trained using past transaction data and predicts whether a new transaction is genuine or fraudulent.
 
@@ -11,7 +12,17 @@ Credit Card Fraud Detection is a machine learning project that identifies fraudu
 4. Improve transaction security using machine learning..
 
 ## Software and libraries required
-<img width="433" height="181" alt="image" src="https://github.com/user-attachments/assets/f863aa91-5925-4ca6-bbb0-2fcfc9b49829" />
+
+| Software / Library | Purpose |
+| :--- | :--- |
+| Python | Programming |
+| Jupyter Notebook / VS Code | Code execution |
+| Pandas | Dataset handling |
+| NumPy | Numerical calculations |
+| Matplotlib | Data visualization |
+| Seaborn | Graphs |
+| Scikit-learn | Machine learning |
+| Joblib | Saving trained model |
 
 ## Algorithm
 Random Forest Classifier (supervised classification).
@@ -44,12 +55,20 @@ Install Python 3.9 or later, then run:
    ROC-AUC, PR-AUC, and a confusion matrix.
 7. Save the trained model and show an example prediction.
 
-<img width="791" height="535" alt="image" src="https://github.com/user-attachments/assets/436fc25f-9f5c-460d-92a2-e824265de996" />
+<img width="784" height="542" alt="image" src="https://github.com/user-attachments/assets/546bd5c5-b7ce-4153-a9d3-470fbba71341" />
 
 ## Model Evaluation
 The project evaluates the model using:
 
-<img width="497" height="161" alt="image" src="https://github.com/user-attachments/assets/595e7ec9-b4a2-40f0-999d-b1bff27ffbde" />
+| Metric | Purpose |
+| :--- | :--- |
+| Accuracy | Overall correct predictions |
+| Precision | How many predicted fraud cases are actually fraud |
+| Recall | How many actual fraud cases are detected |
+| F1-score | Balance between precision and recall |
+| Confusion Matrix | Correct and incorrect predictions |
+| ROC-AUC | Ability to distinguish two classes |
+| PR-AUC | Performance on imbalanced data |
 
 ### Important: 
 Fraud datasets are highly imbalanced. Therefore, recall, precision and PR-AUC are especially important. High accuracy alone does not mean the model detects fraud effectively.
