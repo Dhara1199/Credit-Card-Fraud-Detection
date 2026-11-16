@@ -202,6 +202,10 @@ Credit-Card-Fraud-Detection/
 
 **Built with 🐍 Python, 🌲 150 decision trees and a healthy suspicion of $1.00 transactions at 2 a.m.**
 
-⭐ If this project helped you, consider giving it a star!
-
 </div>
+
+## 👤 Author
+
+* **Project:** FraudRadar - Credit Card Fraud Detection Using Python and Machine Learning
+* **Repository:** [Dhara1199/Credit-Card-Fraud-Detection](https://github.com/Dhara1199/Credit-Card-Fraud-Detection)
+* **Live System:** [https://credit-card-fraud-detection-1-9o7h.onrender.com/](https://credit-card-fraud-detection-1-9o7h.onrender.com/)
