@@ -36,15 +36,6 @@ Place the CSV file in the same folder as `main.py`.
 The dataset includes Time, Amount, anonymized features V1-V28, and Class.
 Class 0 means genuine; Class 1 means fraudulent.
 
-## Installation
-Install Python 3.9 or later, then run:
-
-    pip install -r requirements.txt
-
-## Execution
-
-    python main.py
-
 ## Web app — FraudRadar
 
 A web dashboard (Flask + vanilla JS) on top of the trained model:
@@ -53,12 +44,12 @@ A web dashboard (Flask + vanilla JS) on top of the trained model:
 - **Batch scanner** – upload a CSV, get every row scored and ranked, export results
 - **Model insights** – feature importance, dataset stats and evaluation plots
 
-Run locally:
+### Run locally:
 
     pip install -r requirements.txt
     python server.py        # http://localhost:5000
 
-Deploy on Render (Web Service, Python):
+### Deploy on Render (Web Service, Python):
 
 - Build command: `pip install -r requirements.txt`
 - Start command: `gunicorn server:app --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:$PORT`
