@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FraudRadar — Credit Card Fraud Detection</title>
+  <meta name="description" content="Credit card fraud detection console powered by a Random Forest model.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%2307080c' stroke='%23c6ff3d' stroke-width='2'/><path d='M16 16 L16 3 A13 13 0 0 1 28 12 Z' fill='%23c6ff3d'/><circle cx='22' cy='10' r='2.4' fill='%23ff3d6e'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<div class="shell">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#investigate"><span class="radar-dot"></span><span>Fraud<b>Radar</b></span></a>
+
+    <nav class="side-nav">
+      <a href="#investigate" data-view="investigate" class="active">
+        <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>Check transaction
+      </a>
+      <a href="#batch" data-view="batch">
+        <svg viewBox="0 0 24 24"><path d="M4 7V4h3M17 4h3v3M20 17v3h-3M7 20H4v-3M4 12h16"/></svg>Batch scanner
+      </a>
+      <a href="#model" data-view="model">
+        <svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5M5 8v8M19 8v8"/></svg>Model insights
+      </a>
+    </nav>
+
+    <div class="model-card">
+      <div class="mc-row"><span class="pulse"></span><b>Model online</b></div>
+      <dl>
+        <div><dt>Engine</dt><dd id="mcAlgo">Random Forest</dd></div>
+        <div><dt>Trees</dt><dd id="mcTrees">150</dd></div>
+      </dl>
+    </div>
+    <a class="side-foot" href="https://github.com/Dhara1199/Credit-Card-Fraud-Detection" target="_blank" rel="noopener">Source on GitHub ↗</a>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu"><span></span><span></span></button>
+      <div class="crumbs">
+        <small>Credit Card Fraud Detection</small>
+        <h1 id="viewTitle">Check a transaction</h1>
+      </div>
+    </header>
+
+    <!-- ===== VIEW: INVESTIGATE ===== -->
+    <section class="view active" id="view-investigate">
+      <div class="investigate">
+        <div class="panel card-panel">
+          <div class="card-stage">
+            <div class="scan-ring"></div><div class="scan-ring r2"></div>
+            <div class="cc" id="cc">
+              <div class="cc-face">
+                <div class="cc-holo"></div>
+                <div class="cc-top"><span class="cc-bank">RADAR//BANK</span><span class="cc-nfc"><i></i><i></i><i></i></span></div>
+                <div class="cc-chip"><i></i><i></i><i></i><i></i></div>
+                <div class="cc-number" id="ccNumber">4532 •••• •••• 7710</div>
+                <div class="cc-bottom">
+                  <div><small>AMOUNT</small><span id="ccAmount">$ —</span></div>
+                  <div><small>CASE</small><span id="ccCase">#——</span></div>
+                  <div class="cc-logo"><i></i><i></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="pull-row">
+            <button class="btn btn-ghost" data-kind="genuine">Pull genuine</button>
+            <button class="btn btn-coral" data-kind="fraud">Pull known fraud</button>
+            <button class="btn btn-acid" data-kind="any">Surprise me</button>
+          </div>
+        </div>
+
+        <div class="panel verdict">
+          <div class="panel-head"><div><h3>Model verdict</h3><p>Probability that this transaction is fraud</p></div></div>
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 220 130" class="gauge" aria-label="Fraud probability gauge">
+              <defs><linearGradient id="gGrad" x1="0" x2="1"><stop offset="0" stop-color="#c6ff3d"/><stop offset=".5" stop-color="#ffd23d"/><stop offset="1" stop-color="#ff3d6e"/></linearGradient></defs>
+              <path d="M20 115 A90 90 0 0 1 200 115" class="g-track"/>
+              <path d="M20 115 A90 90 0 0 1 200 115" class="g-fill" id="gFill" stroke="url(#gGrad)"/>
+              <g id="gNeedle" class="g-needle"><line x1="110" y1="115" x2="110" y2="38"/><circle cx="110" cy="115" r="7"/></g>
+            </svg>
+            <div class="gauge-read"><span id="gPct">0</span><small>% fraud risk</small></div>
+          </div>
+          <div class="stamp" id="stamp">AWAITING</div>
+          <p class="verdict-note" id="verdictNote">Pull a transaction to start questioning.</p>
+          <div class="risk-scale"><span data-r="low">LOW</span><span data-r="elevated">ELEVATED</span><span data-r="high">HIGH</span><span data-r="critical">CRITICAL</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div><h3>Signal fingerprint</h3><p>The 28 hidden signals (V1–V28) the model reads. Fraud tends to leave sharp spikes.</p></div>
+          <div class="legend"><span><i class="l-ok"></i>Positive</span><span><i class="l-bad"></i>Negative</span></div>
+        </div>
+        <div class="fingerprint" id="fingerprint"></div>
+        <div class="fp-axis"><span>V1</span><span>V7</span><span>V14</span><span>V21</span><span>V28</span></div>
+        <div class="facts">
+          <div><small>Amount</small><strong id="sAmount">—</strong></div>
+          <div><small>Seconds since first txn</small><strong id="sTime">—</strong></div>
+          <div><small>Ground truth</small><strong id="sTruth">—</strong></div>
+          <div><small>Model said</small><strong id="sModel">—</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== VIEW: BATCH ===== -->
+    <section class="view" id="view-batch">
+      <div class="panel">
+        <div class="panel-head"><div><h3>Batch scanner</h3><p>Upload a CSV with columns Time, V1–V28, Amount (Class optional). Every row is scored and ranked by risk.</p></div></div>
+        <label class="scanbed" id="dropzone">
+          <input type="file" id="fileInput" accept=".csv" hidden>
+          <div class="laser"></div>
+          <div class="scanbed-inner"><div class="scan-icon">⌁</div><strong>Drop a CSV on the scanner bed</strong><span>or click to browse · up to 40 MB</span></div>
+        </label>
+        <div class="scan-actions">
+          <button class="btn btn-acid" id="useSample">Run built-in sample (100 txns)</button>
+          <a class="link" href="/download/sample.csv">Download sample CSV ↓</a>
+          <span class="scan-status" id="scanStatus"></span>
+        </div>
+      </div>
+
+      <div id="results" hidden>
+        <div class="kpis">
+          <div class="kpi"><div class="kpi-top"><small>Scanned</small></div><strong id="rTotal">0</strong></div>
+          <div class="kpi ok"><div class="kpi-top"><small>Cleared</small></div><strong id="rGenuine">0</strong></div>
+          <div class="kpi bad"><div class="kpi-top"><small>Flagged</small></div><strong id="rFraud">0</strong></div>
+          <div class="kpi"><div class="kpi-top"><small>Money at risk</small></div><strong id="rAmount">$0</strong></div>
+        </div>
+        <div class="labelled" id="labelled" hidden></div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Risk spectrum</h3><p>How the file splits across risk levels</p></div></div>
+          <div class="spectrum" id="spectrum"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div><h3>Ranked results</h3><p id="feedNote">Most suspicious first</p></div>
+            <div class="chips">
+              <button class="chip active" data-filter="all">All</button>
+              <button class="chip" data-filter="flagged">Flagged only</button>
+              <button class="btn btn-ghost sm" id="downloadResults">Export CSV ↓</button>
+            </div>
+          </div>
+          <div class="feed-table batch">
+            <div class="tr th"><span>Row</span><span>Time</span><span>Amount</span><span>Risk score</span><span>Decision</span></div>
+            <div id="batchFeed"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== VIEW: MODEL ===== -->
+    <section class="view" id="view-model">
+      <div class="kpis" id="dataKpis">
+        <div class="kpi"><div class="kpi-top"><small>Training transactions</small></div><strong id="dRows">—</strong></div>
+        <div class="kpi bad"><div class="kpi-top"><small>Known frauds</small></div><strong id="dFraud">—</strong></div>
+        <div class="kpi"><div class="kpi-top"><small>Fraud rate</small></div><strong id="dRate">—</strong></div>
+        <div class="kpi"><div class="kpi-top"><small>Avg fraud ticket</small></div><strong id="dAvg">—</strong></div>
+      </div>
+      <div class="grid g-2-1">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Most influential signals</h3><p>Feature importance across all 150 trees</p></div></div>
+          <div class="importance" id="importance"></div>
+          <p class="muted small">V1–V28 are PCA-transformed features released by the bank, so their real-world meaning is hidden on purpose to protect customers.</p>
+        </div>
+        <div class="panel pipeline">
+          <div class="panel-head"><div><h3>Pipeline</h3><p>How the model was built</p></div></div>
+          <ol>
+            <li><b>Load</b> the Kaggle credit card transaction dataset</li>
+            <li><b>Split</b> 80 / 20, stratified so fraud stays proportional</li>
+            <li><b>Train</b> Random Forest · 150 trees · balanced class weights</li>
+            <li><b>Evaluate</b> precision, recall, ROC-AUC and PR-AUC</li>
+            <li><b>Serve</b> via a Flask API to this console</li>
+          </ol>
+          <p class="note">Fraud is extremely rare, so a model that says "genuine" every time would still be 99.8% accurate. Recall and PR-AUC are the numbers that really matter.</p>
+        </div>
+      </div>
+      <div class="plots">
+        <figure><img src="/plots/class_distribution.png" alt="Class distribution chart" loading="lazy"><figcaption>Genuine vs fraud — the imbalance problem</figcaption></figure>
+        <figure><img src="/plots/confusion_matrix.png" alt="Confusion matrix" loading="lazy"><figcaption>Confusion matrix on the test set</figcaption></figure>
+        <figure><img src="/plots/transaction_amount.png" alt="Transaction amount by class" loading="lazy"><figcaption>Transaction amount by class</figcaption></figure>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

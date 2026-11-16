@@ -45,6 +45,27 @@ Install Python 3.9 or later, then run:
 
     python main.py
 
+## Web app — FraudRadar
+
+A web dashboard (Flask + vanilla JS) on top of the trained model:
+
+- **Check transaction** – pull a genuine or fraudulent transaction and see the verdict, risk gauge and V1–V28 signal fingerprint
+- **Batch scanner** – upload a CSV, get every row scored and ranked, export results
+- **Model insights** – feature importance, dataset stats and evaluation plots
+
+Run locally:
+
+    pip install -r requirements.txt
+    python server.py        # http://localhost:5000
+
+Deploy on Render (Web Service, Python):
+
+- Build command: `pip install -r requirements.txt`
+- Start command: `gunicorn server:app --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:$PORT`
+- Environment variable: `PYTHON_VERSION=3.11.9`
+
+(`render.yaml` contains the same settings for Blueprint deploys.)
+
 ## How the project works
 1. Load and inspect the transaction dataset.
 2. Visualize the number of genuine and fraudulent transactions.
