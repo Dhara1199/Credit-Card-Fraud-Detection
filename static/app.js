@@ -11,11 +11,29 @@
   const pct = (p, d = 1) => (p * 100).toFixed(d) + "%";
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-  async function api(url, opts) {
-    const res = await fetch(url, opts);
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
-    return body;
+  // Render's free tier sleeps when idle and briefly drops connections while
+  // waking up or redeploying, so network errors and 502/503s are retried.
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  async function api(url, opts, { retries = 4, onRetry } = {}) {
+    for (let attempt = 0; ; attempt++) {
+      let res;
+      try {
+        res = await fetch(url, opts);
+      } catch (err) {
+        if (attempt >= retries) throw new Error("Can't reach the server. It may be waking up, so try again in a minute.");
+        onRetry && onRetry(attempt + 1);
+        await sleep(3000 * (attempt + 1));
+        continue;
+      }
+      if ([502, 503, 504].includes(res.status) && attempt < retries) {
+        onRetry && onRetry(attempt + 1);
+        await sleep(3000 * (attempt + 1));
+        continue;
+      }
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+      return body;
+    }
   }
 
   function countUp(el, to, fmt = v => Math.round(v).toLocaleString(), ms = 700) {
@@ -135,8 +153,18 @@
   drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) scan(f); });
   input.addEventListener("change", () => { if (input.files[0]) scan(input.files[0]); input.value = ""; });
   $("#useSample").addEventListener("click", async () => {
-    try { const blob = await (await fetch("/download/sample.csv")).blob(); scan(new File([blob], "sample_transactions.csv")); }
-    catch { status.textContent = "Could not load the sample file."; status.className = "scan-status err"; }
+    status.className = "scan-status"; status.textContent = "Loading sample file…";
+    for (let i = 0; i < 5; i++) {
+      try {
+        const res = await fetch("/download/sample.csv");
+        if (!res.ok) throw new Error();
+        return scan(new File([await res.blob()], "sample_transactions.csv"));
+      } catch {
+        status.textContent = "Server is waking up (free plan), retrying…";
+        await sleep(3000 * (i + 1));
+      }
+    }
+    status.textContent = "✗ Can't reach the server. Try again in a minute."; status.className = "scan-status err";
   });
 
   async function scan(file) {
@@ -145,7 +173,8 @@
     const fd = new FormData(); fd.append("file", file);
     const t0 = performance.now();
     try {
-      const [d] = await Promise.all([api("/api/predict-csv", { method: "POST", body: fd }), new Promise(r => setTimeout(r, 1000))]);
+      const onRetry = n => { status.textContent = `Server is waking up (free plan), retrying… (${n})`; };
+      const [d] = await Promise.all([api("/api/predict-csv", { method: "POST", body: fd }, { onRetry }), sleep(1000)]);
       status.textContent = `✓ ${d.summary.total.toLocaleString()} transactions scored in ${((performance.now() - t0) / 1000).toFixed(1)}s`;
       renderBatch(d);
     } catch (err) {
