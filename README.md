@@ -14,14 +14,6 @@
 ![Pandas](https://img.shields.io/badge/Pandas-2.2-150458?style=flat-square&logo=pandas&logoColor=white)
 ![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=flat-square&logo=render&logoColor=black)
 
-```
-   ┌──────────────────────────────┐
-   │  RADAR//BANK            )))  │        30 hidden signals in
-   │  ▣▣                          │  ───▶  150 decision trees vote
-   │  4532 •••• •••• 7710         │        ✅ GENUINE   or   🚨 FRAUD
-   └──────────────────────────────┘
-```
-
 </div>
 
 ---
@@ -120,11 +112,11 @@ V17  ███████                6.7%
 | :--- | :--- |
 | Accuracy | Overall correct predictions |
 | Precision | Of the transactions flagged as fraud, how many really were fraud |
-| **Recall** | **Of the real frauds, how many were caught** |
+| Recall | Of the real frauds, how many were caught |
 | F1-score | Balance between precision and recall |
 | Confusion matrix | Correct vs incorrect predictions per class |
 | ROC-AUC | How well the model separates the two classes |
-| **PR-AUC** | **Performance on heavily imbalanced data** |
+| PR-AUC | Performance on heavily imbalanced data |
 
 > [!IMPORTANT]
 > Fraud data is extremely imbalanced, so **recall, precision and PR-AUC** are the numbers that matter. High accuracy on its own means nothing here.
